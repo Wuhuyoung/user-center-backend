@@ -1,38 +1,24 @@
-# usercenter-backend
+# user-center-backend
 
-#### 介绍
-用户中心管理系统
-后端
+## 项目简介
 
-#### 软件架构
-软件架构说明
+本项目是一个简单的用户管理系统的后端，实现了用户注册、登录、查询等基础功能，如图：
 
+![image-20230604000244974](C:/Users/86183/AppData/Roaming/Typora/typora-user-images/image-20230604000244974.png)
 
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+![image-20230604000403348](C:/Users/86183/AppData/Roaming/Typora/typora-user-images/image-20230604000403348.png)
 
 
-#### 特技
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+## 项目用到的技术
+
+- Java 1.8
+- Maven
+- MySQL
+
+
+
+## 如何使用本项目
+
+1. 下载源码，导入Idea，可以在demo目录下进行相关的测试（与使用Spring Boot开发项目基本相同）
+2. 下载前端项目：https://github.com/Wuhuyoung/user-center-frontend
