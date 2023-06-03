@@ -4,9 +4,9 @@
 
 本项目是一个简单的用户管理系统的后端，实现了用户注册、登录、查询等基础功能，如图：
 
-![image-20230604000244974](C:/Users/86183/AppData/Roaming/Typora/typora-user-images/image-20230604000244974.png)
+![image-20230604000244974](https://typora-1314662469.cos.ap-shanghai.myqcloud.com/img/202306040018323.png)
 
-![image-20230604000403348](C:/Users/86183/AppData/Roaming/Typora/typora-user-images/image-20230604000403348.png)
+![image-20230604000403348](https://typora-1314662469.cos.ap-shanghai.myqcloud.com/img/202306040018526.png)
 
 
 
