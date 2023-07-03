@@ -1,5 +1,4 @@
 package com.han.service;
-import java.time.LocalDateTime;
 
 import com.han.model.domain.User;
 import org.junit.jupiter.api.Assertions;
@@ -7,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 用户服务测试
@@ -65,5 +67,12 @@ public class UserServiceTest {
         result = userService.userRegister(account, password, checkedPassword, planetCode);
         Assertions.assertEquals(-1, result);
 
+    }
+
+    @Test
+    void searchUserByTags() {
+        List<String> tagNameList = Arrays.asList("Java");
+        List<User> users = userService.searchUserByTags(tagNameList);
+        Assertions.assertNotNull(users);
     }
 }

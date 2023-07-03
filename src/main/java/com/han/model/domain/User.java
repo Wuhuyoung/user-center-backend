@@ -62,6 +62,11 @@ public class User implements Serializable {
     private String planetCode;
 
     /**
+     * 标签列表 json
+     */
+    private String tags;
+
+    /**
      * 状态 0 正常
      */
     private Integer status;
@@ -95,21 +100,25 @@ public class User implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id.equals(user.id) &&
+        return Objects.equals(id, user.id) &&
                 Objects.equals(username, user.username) &&
                 Objects.equals(userAccount, user.userAccount) &&
+                Objects.equals(avatarUrl, user.avatarUrl) &&
                 Objects.equals(gender, user.gender) &&
                 Objects.equals(password, user.password) &&
                 Objects.equals(phone, user.phone) &&
                 Objects.equals(email, user.email) &&
                 Objects.equals(planetCode, user.planetCode) &&
+                Objects.equals(tags, user.tags) &&
                 Objects.equals(status, user.status) &&
+                Objects.equals(createTime, user.createTime) &&
+                Objects.equals(updateTime, user.updateTime) &&
                 Objects.equals(isDelete, user.isDelete) &&
                 Objects.equals(userRole, user.userRole);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, userAccount, gender, password, phone, email, planetCode, status, isDelete, userRole);
+        return Objects.hash(id, username, userAccount, avatarUrl, gender, password, phone, email, planetCode, tags, status, createTime, updateTime, isDelete, userRole);
     }
 }

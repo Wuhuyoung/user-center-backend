@@ -2,6 +2,8 @@ package com.han.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.han.exception.BusinessException;
 import com.han.mapper.UserMapper;
 import com.han.model.domain.User;
@@ -10,10 +12,15 @@ import com.han.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.han.common.ErrorCode.PARAMS_ERROR;
 import static com.han.common.ErrorCode.SYSTEM_ERROR;
@@ -146,6 +153,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setCreateTime(originalUser.getCreateTime());
         safetyUser.setUserRole(originalUser.getUserRole());
         safetyUser.setPlanetCode(originalUser.getPlanetCode());
+        safetyUser.setTags(originalUser.getTags());
         return safetyUser;
     }
 
@@ -154,6 +162,46 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
+    }
+
+    /**
+     * 根据标签搜索用户
+     * @param tagNameList 用户要拥有的标签
+     * @return
+     */
+    @Override
+    public List<User> searchUserByTags(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        // 实现方式一：使用SQL语句模糊查询标签
+//        // where tags like '%Java%' and tags like '%C++%'
+//        LambdaQueryWrapper<User> lqw = new LambdaQueryWrapper<>();
+//        for (String tagName : tagNameList) {
+//            lqw.like(User::getTags, tagName);
+//        }
+//        List<User> users = userMapper.selectList(lqw);
+//        return users.stream().map(this::getSafetyUser).collect(Collectors.toList());
+
+        // 实现方式二：全部查询，然后用Java代码在内存中实现标签筛选
+        // 查询所有用户
+        List<User> users = userMapper.selectList(null);
+        Gson gson = new Gson();
+        // 根据标签筛选
+        List<User> userList = users.stream().filter(user -> {
+            String tagNameStr = user.getTags();
+            if (StringUtils.isBlank(tagNameStr)) {
+                return false;
+            }
+            Set<String> tagList = gson.fromJson(tagNameStr, new TypeToken<Set<String>>(){}.getType());
+            for (String tagName : tagNameList) {
+                if (!tagList.contains(tagName)) {
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
+        return userList;
     }
 }
 
