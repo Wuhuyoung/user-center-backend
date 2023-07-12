@@ -18,7 +18,9 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -165,7 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     /**
-     * 根据标签搜索用户
+     * 根据标签搜索用户（内存过滤）
      * @param tagNameList 用户要拥有的标签
      * @return
      */
@@ -174,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(PARAMS_ERROR);
         }
-        // 实现方式一：使用SQL语句模糊查询标签
+        // 实现方式一：使用SQL语句模糊查询标签（标签较少时更快，标签较多时多次使用like查询效率降低）
 //        // where tags like '%Java%' and tags like '%C++%'
 //        LambdaQueryWrapper<User> lqw = new LambdaQueryWrapper<>();
 //        for (String tagName : tagNameList) {
@@ -183,17 +185,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 //        List<User> users = userMapper.selectList(lqw);
 //        return users.stream().map(this::getSafetyUser).collect(Collectors.toList());
 
-        // 实现方式二：全部查询，然后用Java代码在内存中实现标签筛选
+        // 实现方式二：全部查询，然后用Java代码在内存中实现标签筛选（标签较多时更快）
         // 查询所有用户
         List<User> users = userMapper.selectList(null);
         Gson gson = new Gson();
         // 根据标签筛选
         List<User> userList = users.stream().filter(user -> {
-            String tagNameStr = user.getTags();
+            String tagNameStr = user.getTags();  // ["Java", "Python"]
             if (StringUtils.isBlank(tagNameStr)) {
                 return false;
             }
+            // json反序列化为set集合
             Set<String> tagList = gson.fromJson(tagNameStr, new TypeToken<Set<String>>(){}.getType());
+            // 集合遍历之前需要判空
+            tagList = Optional.ofNullable(tagList).orElse(new HashSet<>());
             for (String tagName : tagNameList) {
                 if (!tagList.contains(tagName)) {
                     return false;
@@ -202,6 +207,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return true;
         }).map(this::getSafetyUser).collect(Collectors.toList());
         return userList;
+    }
+
+    /**
+     * 使用SQL模糊查询 根据标签搜索用户
+     * @param tagNameList 用户要拥有的标签
+     * @return
+     */
+    @Deprecated
+    private List<User> searchUserByTagsBySQL(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        // 实现方式一：使用SQL语句模糊查询标签（标签较少时更快，标签较多时多次使用like查询效率降低）
+        // where tags like '%Java%' and tags like '%C++%'
+        LambdaQueryWrapper<User> lqw = new LambdaQueryWrapper<>();
+        for (String tagName : tagNameList) {
+            lqw.like(User::getTags, tagName);
+        }
+        List<User> users = userMapper.selectList(lqw);
+        return users.stream().map(this::getSafetyUser).collect(Collectors.toList());
     }
 }
 

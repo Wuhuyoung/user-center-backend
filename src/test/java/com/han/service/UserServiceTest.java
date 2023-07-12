@@ -71,7 +71,7 @@ public class UserServiceTest {
 
     @Test
     void searchUserByTags() {
-        List<String> tagNameList = Arrays.asList("Java");
+        List<String> tagNameList = Arrays.asList("Java", "Android");
         List<User> users = userService.searchUserByTags(tagNameList);
         Assertions.assertNotNull(users);
     }
