@@ -20,5 +20,5 @@
 
 ## 如何使用本项目
 
-1. 下载源码，导入Idea，可以在demo目录下进行相关的测试（与使用Spring Boot开发项目基本相同）
+1. 下载源码，导入Idea，与使用Spring Boot开发项目基本相同
 2. 下载前端项目：https://github.com/Wuhuyoung/user-center-frontend

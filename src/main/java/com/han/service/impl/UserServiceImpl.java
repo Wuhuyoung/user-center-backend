@@ -176,14 +176,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(PARAMS_ERROR);
         }
-        // 实现方式一：使用SQL语句模糊查询标签（标签较少时更快，标签较多时多次使用like查询效率降低）
-//        // where tags like '%Java%' and tags like '%C++%'
-//        LambdaQueryWrapper<User> lqw = new LambdaQueryWrapper<>();
-//        for (String tagName : tagNameList) {
-//            lqw.like(User::getTags, tagName);
-//        }
-//        List<User> users = userMapper.selectList(lqw);
-//        return users.stream().map(this::getSafetyUser).collect(Collectors.toList());
 
         // 实现方式二：全部查询，然后用Java代码在内存中实现标签筛选（标签较多时更快）
         // 查询所有用户
