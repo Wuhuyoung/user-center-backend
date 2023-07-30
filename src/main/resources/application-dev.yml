@@ -5,6 +5,10 @@ server:
 spring:
   application:
     name: user-center
+  config:
+    activate:
+      on-profile:
+        - dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/planet
@@ -22,4 +26,20 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+knife4j:
+  enable: true
+  openapi:
+    title: "用户中心"
+    description: "用户中心接口文档"
+    email: xxx@qq.com
+    concat: Wuhuyoung
+    url: https://github.com/Wuhuyoung/user-center-backend
+    version: v1.0
+    terms-of-service-url: https://github.com/Wuhuyoung
+    group:
+      test1:
+        group-name: user-center
+        api-rule: package
+        api-rule-resources:
+          - com.han.controller
 
