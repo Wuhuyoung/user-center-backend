@@ -9,6 +9,7 @@ import com.han.model.request.UserLoginRequest;
 import com.han.model.request.UserRegisterRequest;
 import com.han.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -127,6 +128,15 @@ public class UserController {
         }
         boolean result = userService.removeById(id);
         return BaseResponse.ok(result);
+    }
+
+    @GetMapping("/search/tags")
+    public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        List<User> userList = userService.searchUserByTags(tagNameList);
+        return BaseResponse.ok(userList);
     }
 
     /**
