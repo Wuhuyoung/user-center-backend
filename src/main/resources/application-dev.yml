@@ -16,7 +16,14 @@ spring:
     password: 491001
   # session失效时间
   session:
-    timeout: 86400
+    timeout: 86400 # 单位：分钟，两个月
+    store-type: redis
+  # redis配置
+  redis:
+    host: 192.168.5.100
+    port: 6379
+    password: 491001
+    database: 0
 mybatis-plus:
   global-config:
     db-config:

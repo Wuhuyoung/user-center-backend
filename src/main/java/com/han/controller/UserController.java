@@ -31,6 +31,7 @@ import static com.han.constant.UserConstants.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin
 public class UserController {
     @Resource
     private UserService userService;
@@ -105,7 +106,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUser(String userName, HttpServletRequest request) {
         //只有管理员可以查询
-        if(!isAdmin(request)) {
+        if(!userService.isAdmin(request)) {
             throw new BusinessException(NO_AUTH);
         }
         LambdaQueryWrapper<User> lqw = new LambdaQueryWrapper<>();
@@ -116,10 +117,20 @@ public class UserController {
         return BaseResponse.ok(result);
     }
 
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateUser(User user, HttpServletRequest request) {
+        if (user == null) {
+            throw new BusinessException(PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = userService.updateUser(user, loginUser);
+        return BaseResponse.ok(result);
+    }
+
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         //鉴权，只有管理员可以删除
-        if(!isAdmin(request)) {
+        if(!userService.isAdmin(request)) {
             throw new BusinessException(NO_AUTH);
         }
 
@@ -137,34 +148,6 @@ public class UserController {
         }
         List<User> userList = userService.searchUserByTags(tagNameList);
         return BaseResponse.ok(userList);
-    }
-
-    /**
-     * 是否为管理员
-     * @param request
-     * @return
-     */
-    private boolean isAdmin(HttpServletRequest request) {
-        //鉴权
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        if(user == null) {
-            return false;
-        }
-        //可能之前修改过用户的权限，而request中的用户信息过期了
-        //最好再从数据库中查询一次
-        Long id = user.getId();
-        User currentUser = userService.getById(id);
-        //该用户被删除了
-        if(currentUser == null) {
-            request.getSession().removeAttribute(USER_LOGIN_STATE);
-            return false;
-        }
-        //如果用户信息有变，更新session中的用户信息
-        if(!user.equals(currentUser)) {
-            request.getSession().setAttribute(USER_LOGIN_STATE, currentUser);
-        }
-        return currentUser.getUserRole() == 1;
     }
 
 }

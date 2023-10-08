@@ -1,9 +1,12 @@
 package com.han.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.han.common.ErrorCode;
+import com.han.constant.UserConstants;
 import com.han.exception.BusinessException;
 import com.han.mapper.UserMapper;
 import com.han.model.domain.User;
@@ -149,6 +152,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetyUser.setUserAccount(originalUser.getUserAccount());
         safetyUser.setAvatarUrl(originalUser.getAvatarUrl());
         safetyUser.setGender(originalUser.getGender());
+        safetyUser.setProfile(originalUser.getProfile());
         safetyUser.setPhone(originalUser.getPhone());
         safetyUser.setEmail(originalUser.getEmail());
         safetyUser.setStatus(originalUser.getStatus());
@@ -201,6 +205,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userList;
     }
 
+    @Override
+    public boolean updateUser(User user, User loginUser) {
+        // 校验权限:仅管理员或用户本人可修改
+        
+        // 更新用户信息
+        return false;
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+
     /**
      * 使用SQL模糊查询 根据标签搜索用户
      * @param tagNameList 用户要拥有的标签
@@ -219,6 +243,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         List<User> users = userMapper.selectList(lqw);
         return users.stream().map(this::getSafetyUser).collect(Collectors.toList());
+    }
+
+    /**
+     * 是否为管理员
+     * @param request
+     * @return
+     */
+    public boolean isAdmin(HttpServletRequest request) {
+        //鉴权
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        if (user == null) {
+            return false;
+        }
+        //可能之前修改过用户的权限，而request中的用户信息过期了
+        //最好再从数据库中查询一次
+        Long id = user.getId();
+        User currentUser = getById(id);
+        //该用户被删除了
+        if (currentUser == null) {
+            request.getSession().removeAttribute(USER_LOGIN_STATE);
+            return false;
+        }
+        //如果用户信息有变，更新session中的用户信息
+        if (!user.equals(currentUser)) {
+            request.getSession().setAttribute(USER_LOGIN_STATE, currentUser);
+        }
+        return currentUser.getUserRole() == UserConstants.ADMIN_ROLE;
+    }
+
+    /**
+     * 是否为管理员
+     * @param loginUser
+     * @return
+     */
+    public boolean isAdmin(User loginUser) {
+        return loginUser != null && loginUser.getUserRole() == UserConstants.ADMIN_ROLE;
     }
 }
 
