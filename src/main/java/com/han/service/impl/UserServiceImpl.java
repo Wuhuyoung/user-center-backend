@@ -207,10 +207,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public boolean updateUser(User user, User loginUser) {
+        Long id = user.getId();
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         // 校验权限:仅管理员或用户本人可修改
-        
+        if (!isAdmin(loginUser) && !id.equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User oldUser = userMapper.selectById(id);
+        if (oldUser == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
         // 更新用户信息
-        return false;
+        return userMapper.updateById(user) > 0;
     }
 
     @Override
