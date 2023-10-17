@@ -1,6 +1,7 @@
 package com.han.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.han.common.BaseResponse;
 import com.han.common.ErrorCode;
 import com.han.exception.BusinessException;
@@ -8,7 +9,10 @@ import com.han.model.domain.User;
 import com.han.model.request.UserLoginRequest;
 import com.han.model.request.UserRegisterRequest;
 import com.han.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.sql.BatchUpdateException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.BackingStoreException;
 import java.util.stream.Collectors;
 
@@ -32,6 +37,7 @@ import static com.han.constant.UserConstants.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/user")
 @CrossOrigin
+@Slf4j
 public class UserController {
     @Resource
     private UserService userService;
@@ -148,6 +154,12 @@ public class UserController {
         }
         List<User> userList = userService.searchUserByTags(tagNameList);
         return BaseResponse.ok(userList);
+    }
+
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>> recommendUsers(HttpServletRequest request, int pageSize, int pageNum) {
+        Page<User> userPage = userService.recommendUsers(request, pageSize, pageNum);
+        return BaseResponse.ok(userPage);
     }
 
 }

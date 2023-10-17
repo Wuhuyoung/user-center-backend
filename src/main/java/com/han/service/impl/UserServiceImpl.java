@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.han.common.BaseResponse;
 import com.han.common.ErrorCode;
 import com.han.constant.UserConstants;
 import com.han.exception.BusinessException;
@@ -14,6 +15,7 @@ import com.han.service.UserService;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -21,10 +23,8 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.han.common.ErrorCode.PARAMS_ERROR;
@@ -45,6 +45,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public long userRegister(String account, String password, String checkedPassword, String planetCode) {
@@ -219,8 +221,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (oldUser == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
+        // 如果用户没有传递更新的字段，则拒绝更新
+        if (isEmptyUser(user)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         // 更新用户信息
         return userMapper.updateById(user) > 0;
+    }
+
+    // 判断是否除 id 外其他字段均为 null
+    private boolean isEmptyUser(User user) {
+        String username = user.getUsername();
+        String userAccount = user.getUserAccount();
+        String avatarUrl = user.getAvatarUrl();
+        Integer gender = user.getGender();
+        String profile = user.getProfile();
+        String password = user.getPassword();
+        String phone = user.getPhone();
+        String email = user.getEmail();
+        String planetCode = user.getPlanetCode();
+        String tags = user.getTags();
+        Integer status = user.getStatus();
+        Integer isDelete = user.getIsDelete();
+        Integer userRole = user.getUserRole();
+        return username == null && userAccount == null && avatarUrl == null && gender == null
+                && profile == null && password == null && phone == null && email == null
+                && planetCode == null && tags == null && status == null && isDelete == null
+                && userRole == null;
     }
 
     @Override
@@ -290,6 +317,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     public boolean isAdmin(User loginUser) {
         return loginUser != null && loginUser.getUserRole() == UserConstants.ADMIN_ROLE;
+    }
+
+    @Override
+    public Page<User> recommendUsers(HttpServletRequest request, int pageSize, int pageNum) {
+        // 查询缓存
+        User loginUser = this.getLoginUser(request);
+        String key = String.format("plusyou:user:recommend:%s", loginUser.getId());
+        Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(key);
+        // 缓存存在，直接返回
+        if (userPage != null) {
+            return userPage;
+        }
+
+        // 缓存不存在，查询数据库
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        userPage = this.page(new Page<>(pageNum, pageSize), queryWrapper);
+        userPage.setRecords(userPage.getRecords().stream().map(this::getSafetyUser).collect(Collectors.toList()));
+        // 写缓存
+        try {
+            redisTemplate.opsForValue().set(key, userPage, 1, TimeUnit.DAYS);
+        } catch (Exception e) {
+            log.error("redis set key error", e);
+        }
+        return userPage;
     }
 }
 

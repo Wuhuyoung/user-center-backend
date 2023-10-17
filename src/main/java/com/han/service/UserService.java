@@ -1,5 +1,6 @@
 package com.han.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.han.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -80,4 +81,13 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean isAdmin(User loginUser);
+
+    /**
+     * 分页查询推荐用户
+     * @param request
+     * @param pageSize
+     * @param pageNum
+     * @return
+     */
+    Page<User> recommendUsers(HttpServletRequest request, int pageSize, int pageNum);
 }
