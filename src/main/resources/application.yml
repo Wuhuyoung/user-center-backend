@@ -20,6 +20,11 @@ spring:
     port: 6379
     password: 491001
     database: 0
+  redisson:
+    host: 192.168.5.100
+    port: 6379
+    password: 491001
+    database: 2
 mybatis-plus:
   global-config:
     db-config:
