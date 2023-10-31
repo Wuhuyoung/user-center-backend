@@ -6,6 +6,8 @@ import com.han.common.BaseResponse;
 import com.han.common.ErrorCode;
 import com.han.exception.BusinessException;
 import com.han.model.domain.Team;
+import com.han.model.domain.User;
+import com.han.model.request.TeamAddRequest;
 import com.han.model.request.TeamQueryRequest;
 import com.han.service.TeamService;
 import com.han.service.UserService;
@@ -14,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -32,15 +35,15 @@ public class TeamController {
     private TeamService teamService;
 
     @PostMapping("/add")
-    public BaseResponse<Long> addTeam(@RequestBody Team team) {
-        if (team == null) {
+    public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
+        if (teamAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean success = teamService.save(team);
-        if (!success) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "插入队伍失败");
-        }
-        return BaseResponse.ok(team.getId());
+        User loginUser = userService.getLoginUser(request);
+        Team team = new Team();
+        BeanUtils.copyProperties(teamAddRequest, team);
+        long teamId = teamService.addTeam(team, loginUser);
+        return BaseResponse.ok(teamId);
     }
 
     @PostMapping("/delete")

@@ -7,7 +7,7 @@ spring:
     name: user-center
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/planet
+    url: jdbc:mysql://127.0.0.1:3306/planet?serverTimezone=Asia/Shanghai
     username: root
     password: 491001
   # session失效时间
