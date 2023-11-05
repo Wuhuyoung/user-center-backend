@@ -9,6 +9,7 @@ import com.han.model.domain.Team;
 import com.han.model.domain.User;
 import com.han.model.request.TeamAddRequest;
 import com.han.model.request.TeamQueryRequest;
+import com.han.model.vo.TeamUserVO;
 import com.han.service.TeamService;
 import com.han.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.List;
 
 /**
  * 队伍接口
+ *
  * @author han
  */
 @RestController
@@ -83,14 +85,11 @@ public class TeamController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<List<Team>> listTeam(TeamQueryRequest teamQueryRequest) {
+    public BaseResponse<List<TeamUserVO>> listTeam(TeamQueryRequest teamQueryRequest) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Team team = new Team();
-        BeanUtils.copyProperties(teamQueryRequest, team);
-        LambdaQueryWrapper<Team> lqw = new LambdaQueryWrapper<>(team);
-        List<Team> teamList = teamService.list(lqw);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQueryRequest);
         return BaseResponse.ok(teamList);
     }
 

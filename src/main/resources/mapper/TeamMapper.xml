@@ -24,4 +24,13 @@
         status,password,create_time,
         update_time,is_delete
     </sql>
+
+    <select id="selectJoinUser" resultType="com.han.model.domain.User">
+        select u.id, u.username, u.user_account, u.avatar_url, u.gender, u.profile,
+               u.phone, u.email, u.status, u.planet_code, u.tags, u.user_role
+        from user_team ut
+        inner join user u
+        on ut.user_id = u.id
+        where ut.team_id = #{teamId}
+    </select>
 </mapper>

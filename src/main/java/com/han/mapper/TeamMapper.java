@@ -2,6 +2,10 @@ package com.han.mapper;
 
 import com.han.model.domain.Team;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.han.model.domain.User;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author 86183
@@ -11,6 +15,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 public interface TeamMapper extends BaseMapper<Team> {
 
+    /**
+     * 查询加入队伍的用户
+     * @param teamId
+     * @return
+     */
+    List<User> selectJoinUser(@Param("teamId") Long teamId);
 }
 
 
