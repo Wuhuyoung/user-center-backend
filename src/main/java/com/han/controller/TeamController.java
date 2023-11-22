@@ -85,11 +85,12 @@ public class TeamController {
     }
 
     @GetMapping("/list")
-    public BaseResponse<List<TeamUserVO>> listTeam(TeamQueryRequest teamQueryRequest) {
+    public BaseResponse<List<TeamUserVO>> listTeam(TeamQueryRequest teamQueryRequest, HttpServletRequest request) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<TeamUserVO> teamList = teamService.listTeams(teamQueryRequest);
+        boolean isAdmin = userService.isAdmin(request);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQueryRequest, isAdmin);
         return BaseResponse.ok(teamList);
     }
 

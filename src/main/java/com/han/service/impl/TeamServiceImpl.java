@@ -14,6 +14,7 @@ import com.han.model.vo.TeamUserVO;
 import com.han.model.vo.UserVO;
 import com.han.service.TeamService;
 import com.han.mapper.TeamMapper;
+import com.han.service.UserService;
 import com.han.service.UserTeamService;
 import netscape.security.UserTarget;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,11 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +41,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     private UserTeamService userTeamService;
     @Resource
     private TeamMapper teamMapper;
+    @Resource
+    private UserService userService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -122,7 +123,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    public List<TeamUserVO> listTeams(TeamQueryRequest teamQueryRequest) {
+    public List<TeamUserVO> listTeams(TeamQueryRequest teamQueryRequest, boolean isAdmin) {
         LambdaQueryWrapper<Team> lqw = new LambdaQueryWrapper<>();
 
         if (teamQueryRequest != null) {
@@ -132,11 +133,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             Integer maxNum = teamQueryRequest.getMaxNum();
             Long userId = teamQueryRequest.getUserId();
             Integer status = teamQueryRequest.getStatus();
+            String searchText = teamQueryRequest.getSearchText();
 
             if (id != null && id > 0) {
                 lqw.eq(Team::getId, id);
             }
-            // todo 可以根据关键字同时查询名称和描述
+            // 可以根据关键字同时查询名称和描述
+            if (StringUtils.isNotBlank(searchText)) {
+                lqw.and(qw -> qw.like(Team::getName, searchText).or().like(Team::getDescription, searchText));
+            }
             if (StringUtils.isNotBlank(name)) {
                 lqw.like(Team::getName, name);
             }
@@ -152,11 +157,19 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
                 lqw.eq(Team::getUserId, userId);
             }
             // 根据队伍状态查询
-            // todo 只有管理员可以查询加密/私有的队伍
-            if (TeamStatusEnums.getEnumByValue(status) != null) {
-                lqw.eq(Team::getStatus, status);
+            TeamStatusEnums statusEnum = TeamStatusEnums.getEnumByValue(status);
+            if (statusEnum == null) {
+                statusEnum = TeamStatusEnums.PUBLIC;
             }
+            // 非管理员不能查看私有/加密的队伍
+            if (!isAdmin && !statusEnum.equals(TeamStatusEnums.PUBLIC)) {
+                throw new BusinessException(ErrorCode.NO_AUTH);
+            }
+            lqw.eq(Team::getStatus, statusEnum.getValue());
         }
+        // 过期的队伍不查询
+        // expire_time == null or expire_time > new Date()
+        lqw.and(qw -> qw.isNull(Team::getExpireTime).or().gt(Team::getExpireTime, new Date()));
 
         List<Team> teamList = this.list(lqw);
         List<TeamUserVO> teamUserVOList = new ArrayList<>();
@@ -168,11 +181,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         // 关联查询用户
         Date now = new Date();
         for (Team team : teamList) {
-            // 过期的队伍不展示
-            Date expireTime = team.getExpireTime();
-            if (expireTime != null && expireTime.before(now)) {
-                continue;
-            }
             Long teamId = team.getId();
             // 查询加入队伍的用户
             List<User> userList = teamMapper.selectJoinUser(teamId);

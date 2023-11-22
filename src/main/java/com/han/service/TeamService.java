@@ -6,6 +6,7 @@ import com.han.model.domain.User;
 import com.han.model.request.TeamQueryRequest;
 import com.han.model.vo.TeamUserVO;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -25,7 +26,8 @@ public interface TeamService extends IService<Team> {
     /**
      * 查询队伍列表
      * @param teamQueryRequest
+     * @param isAdmin
      * @return
      */
-    List<TeamUserVO> listTeams(TeamQueryRequest teamQueryRequest);
+    List<TeamUserVO> listTeams(TeamQueryRequest teamQueryRequest, boolean isAdmin);
 }

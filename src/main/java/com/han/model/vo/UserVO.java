@@ -1,6 +1,7 @@
 package com.han.model.vo;
 
 import com.han.model.domain.User;
+import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.Date;
  * 用户封装类（脱敏）
  * @author han
  */
+@Data
 public class UserVO implements Serializable {
     private static final long serialVersionUID = -1318651374569624252L;
     /**
